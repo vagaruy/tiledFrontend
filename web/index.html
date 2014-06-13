@@ -1,0 +1,559 @@
+ <!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+
+        <title>Tiled Device</title>
+        <link href="style.css" rel="stylesheet">
+    
+    
+        <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+        <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+        <script src="websocket.js"></script>
+        <style>
+            table,td,th
+            {
+                border:1px solid black;
+            }
+
+            tr
+            {
+                height:200px;
+            }
+            td
+            {
+                width:2000px;
+            }
+        </style>
+
+        <script>
+
+            function periodic_status()
+            {
+                var obj = new Object();
+                obj.type = "0";
+                obj.value = "0";
+                obj.SerialNo = "1";
+                sendTile(JSON.stringify(obj));
+            }
+            var interval = setInterval(periodic_status, 10000);
+            
+            function json_maker(type, value, serialno)
+            {
+                var SerialNo = $(serialno).attr("id").toString();
+                var Serial = SerialNo.split("s");
+
+                var obj = new Object();
+                obj.type = type.toString();
+                obj.value = value.toString();
+                obj.SerialNo = Serial[1].toString();
+                var jsonString = JSON.stringify(obj);
+                sendTile(jsonString);
+            }
+
+            function recieveTile(evt)
+            {
+                console.log(evt.toString());
+                var json = JSON.parse(evt);
+                var type = json.type;
+                var value = json.value;
+                var SerialNo1 = json.SerialNo;
+                SerialNo = "s" + SerialNo1;
+                //Death message
+                if(type==="11")
+                    {
+                        if(value==="1")
+                        $('#'+SerialNo).css("background-color", "#3FF55D"); 
+                    else
+                        $('#'+SerialNo).css("background-color", "#EE5E5E");
+                    }
+                
+                //JSon format
+            /*   {
+            "type": "1",
+            "value": {
+                "intensity": {
+                    "red": "255",
+                    "blue": "123",
+                    "green": "255",
+                    "amber": "123",
+                    "cwhite": "255",
+                    "wwhite": "123"
+                },
+                "state": "1",
+                "dimspeed": "23",
+                "doa":"1"
+            },
+            "SerialNo": "23"
+        }*/
+               else if(type==="10")
+                    {
+                    if(value.doa==="1")
+                        $('#'+SerialNo).css("background-color", "#3FF55D"); 
+                    else
+                        $('#'+SerialNo).css("background-color", "#EE5E5E");
+                    var red=value.intensity.red;
+                    var blue=value.intensity.blue;
+                    var green=value.intensity.green;
+                    var amber=value.intensity.amber;
+                    var cwhite=value.intensity.cwhite;
+                    var wwhite=value.intensity.wwhite;
+                    var state=value.state;
+                    var dimspeed=value.dimspeed;
+                    $('#' + SerialNo).find("#redlabel").val(red);
+                    $('#' + SerialNo).find("#red").val(red);
+                    $('#' + SerialNo).find("#greenlabel").val(green);
+                    $('#' + SerialNo).find("#green").val(green);
+                    $('#' + SerialNo).find("#bluelabel").val(blue);
+                    $('#' + SerialNo).find("#blue").val(blue);
+                    $('#' + SerialNo).find("#amberlabel").val(amber);
+                    $('#' + SerialNo).find("#amber").val(amber);
+                    $('#' + SerialNo).find("#cwhitelabel").val(cwhite);
+                    $('#' + SerialNo).find("#cwhite").val(cwhite);
+                    $('#' + SerialNo).find("#wwhitelabel").val(wwhite);
+                    $('#' + SerialNo).find("#wwhite").val(wwhite);
+                    $('#' + SerialNo).find("#state"+SerialNo1).val(state);
+                    $('#' + SerialNo).find("#dimlabel").val(dimspeed);
+                    $('#' + SerialNo).find("#dimspeed").val(dimspeed);
+                    
+                    
+                         
+                        
+                    }
+                else if (type === "7")//checkbox
+                {
+                     $('#' + SerialNo).find("#state"+SerialNo1).val(value);
+                }
+                else if (type === "1")
+                {
+                    $('#' + SerialNo).find("#redlabel").val(value);
+                    $('#' + SerialNo).find("#red").val(value);
+                }
+                else if (type === "2")
+                {
+                    $('#' + SerialNo).find("#greenlabel").val(value);
+                    $('#' + SerialNo).find("#green").val(value);
+                }
+                else if (type === "3")
+                {
+                    $('#' + SerialNo).find("#bluelabel").val(value);
+                    $('#' + SerialNo).find("#blue").val(value);
+                }
+                else if (type === "4")
+                {
+                    $('#' + SerialNo).find("#amberlabel").val(value);
+                    $('#' + SerialNo).find("#amber").val(value);
+                }
+                else if (type === "5")
+                {
+                    $('#' + SerialNo).find("#wwhitelabel").val(value);
+                    $('#' + SerialNo).find("#wwhite").val(value);
+                }
+                else if (type === "6")
+                {
+                    $('#' + SerialNo).find("#cwhitelabel").val(value);
+                    $('#' + SerialNo).find("#cwhite").val(value);
+                }
+                else if (type === "8")
+                {
+                    $('#' + SerialNo).find("#dimlabel").val(value);
+                    $('#' + SerialNo).find("#dimspeed").val(value);
+                }
+
+
+            }
+
+            $(document).ready(function() {
+                
+                                    
+            
+            $("#state1,#state2,#state3,#state4,#state5,#state6,#state7,#state8,#state9").click(function() {
+                    var bParent = $(this).parent();
+                    console.log("box is being worked on");
+                    var val=$(this).val(); 
+                        json_maker(7, val, bParent);
+                        if(val==1)
+                         $(this).parent().find('label[for="#state"]').val("On");                       
+                });
+                $("#submitBtn").click(function() {
+                    var bParent = $(this).parent();
+                    var red = $(this).parent().find("#redlabel").val();
+                    var green = $(this).parent().find("#greenlabel").val();
+                    var blue = $(this).parent().find("#bluelabel").val();
+                    var amber = $(this).parent().find("#amberlabel").val();
+                    var cwhite = $(this).parent().find("#cwhitelabel").val();
+                    var wwhite = $(this).parent().find("#wwhitelabel").val();
+                    var dim = $(this).parent().find("#dimlabel").val();
+                    $(this).parent().find("#red").val(red);
+                    $(this).parent().find("#green").val(green);
+                    $(this).parent().find("#blue").val(blue);
+                    $(this).parent().find("#amber").val(amber);
+                    $(this).parent().find("#cwhite").val(cwhite);
+                    $(this).parent().find("#wwhite").val(wwhite);
+                    $(this).parent().find("#dimspeed").val(dim);
+                    json_maker(1, red, bParent);
+                    json_maker(2, green, bParent);
+                    json_maker(3, blue, bParent);
+                    json_maker(4, amber, bParent);
+                    json_maker(5, wwhite, bParent);
+                    json_maker(6, cwhite, bParent);
+                    json_maker(8, dim, bParent);
+                });
+                $(".webcam").click(function(){
+                    var bParent = $(this).parent();
+                    json_maker(12,1,bParent);
+                });
+                
+                $("#optitrack").click(function(){
+                var obj = new Object();
+                var value=$(this).val();
+                obj.type = '7';
+                
+                obj.SerialNo = '127';
+                
+                if(value==='0')
+                {
+                        $(this).html('Optitrack ON');
+                        $(this).val('1');
+                        obj.value = '1';//serial no 127 represents the optitrack system...value 1 to switch on and value 0 for off..type 1 for toggle of system
+                }
+                else if(value==='1')
+                {
+                        $(this).html('Optitrack Off');
+                        $(this).val('0');
+                        obj.value='0';
+
+                }
+                var jsonString = JSON.stringify(obj);
+                sendTile(jsonString);
+                });
+                $("#red,#green,#blue,#amber,#cwhite,#wwhite,#dimspeed").click(function() {
+                    var value = $(this).val();
+                    var bParent = $(this).parent();
+                    $(this).next().val(value);
+                    if ($(this).attr("id") === "red")
+                    {
+                        json_maker(1, value, bParent);
+                    }
+                    else if ($(this).attr("id") === "green")
+                    {
+                        json_maker(2, value, bParent);
+                    }
+                    else if ($(this).attr("id") === "blue")
+                    {
+                        json_maker(3, value, bParent);
+                    }
+                    else if ($(this).attr("id") === "amber")
+                    {
+                        json_maker(4, value, bParent);
+                    }
+                    else if ($(this).attr("id") === "wwhite")
+                    {
+                        json_maker(5, value, bParent);
+                    }
+                    else if ($(this).attr("id") === "cwhite")
+                    {
+                        json_maker(6, value, bParent);
+                    }
+                    else if ($(this).attr("id") === "dimspeed")
+                    {
+                        json_maker(8, value, bParent);
+                    }
+                });
+            });
+
+        </script>
+    </head>
+
+    <body>
+
+        <div class="wrapper">
+
+            <header class="header">
+                <strong>Tiled Device Control</strong>
+            </header><!-- .header-->
+
+            <div class="middle">
+                <Button type="button" value="0" id="optitrack" >Toggle Optitrack</button>
+                <div class="container">
+                    <main class="content">
+                        <table>
+                            <tr>
+                                <td>
+                                    <div id="s1" style="background-color:#FFA500;">
+                                    State<input id="state3" type="range" name="state" min="0" max="1" ><label>Off</label>
+                                    <br>
+                                    
+                                        RED<input id="red" type="range" name="RED" min="0" max="255" ><input id="redlabel" type="text" value="0" size="2">
+                                        <br>
+                                        BLUE <input id="blue" type="range" name="BLUE" min="0" max="255"><input id="bluelabel" type="text" size="2">
+                                        <br>
+                                        GREEN <input id="green" type="range" name="GREEN" min="0" max="255"><input id="greenlabel" type="text" size="2">
+                                        <br>
+                                        AMBER <input id="amber" type="range" name="AMBER" min="0" max="255"><input id="amberlabel" type="text" size="2">
+                                        <br>
+                                        CWHITE<input id="cwhite" type="range" name="CWHITE" min="0" max="255"><input id="cwhitelabel" type="text" size="2">
+                                        <br>
+                                        WWHITE <input id="wwhite" type="range" name="WWHITE" min="0" max="255"><input id="wwhitelabel" type="text" size="2">
+                                        <br>
+                                        <button type="button" class="webcam">ChangeColorFromWebcam</button>
+                                        <br>    
+                                        <br>
+                                        DIM SPEED <input id="dimspeed" type="range" name="DIM" min="0" max="255"><input id="dimlabel" type="text" size="2">
+                                        <br>
+                                        SET ALARM<input type="time" name="usr_time">
+
+                                        <input id ="submitBtn" type="submit" value="Submit">
+
+
+                                    </div>
+                                </td>
+                                <td>
+                                    <div id="s2" style="background-color:#FFA500;">
+                            State<input id="state3" type="range" name="state" min="0" max="1" ><label>Off</label>
+                            <br>
+                                        RED<input id="red" type="range" name="RED" min="0" max="255" ><input id="redlabel" type="text" size="2">
+                                        <br>
+                                        BLUE <input id="blue" type="range" name="BLUE" min="0" max="255"><input id="bluelabel" type="text" size="2">
+                                        <br>
+                                        GREEN <input id="green" type="range" name="GREEN" min="0" max="255"><input id="greenlabel" type="text" size="2">
+                                        <br>
+                                        AMBER <input id="amber" type="range" name="AMBER" min="0" max="255"><input id="amberlabel" type="text" size="2">
+                                        <br>
+                                        CWHITE<input id="cwhite" type="range" name="CWHITE" min="0" max="255"><input id="cwhitelabel" type="text" size="2">
+                                        <br>
+                                        WWHITE <input id="wwhite" type="range" name="WWHITE" min="0" max="255"><input id="wwhitelabel" type="text" size="2">
+                                        <br>
+                                        <button type="button" class="webcam">ChangeColorFromWebcam</button>
+                                        <br>
+                                        <br>
+                                        DIM SPEED <input id="dimspeed" type="range" name="DIM" min="0" max="255"><input id="dimlabel" type="text" size="2">
+                                        <br>
+                                        SET ALARM<input type="time" name="usr_time">
+
+                                        <input id ="submitBtn" type="submit" value="Submit">
+
+
+                                    </div>
+                                </td>
+                                <td>
+                                    <div id="s3" style="background-color:#FFA500;">
+                    State<input id="state3" type="range" name="state" min="0" max="1" ><label>Off</label>
+                    <br>
+                                        RED<input id="red" type="range" name="RED" min="0" max="255" ><input id="redlabel" type="text" size="2">
+                                        <br>
+                                        BLUE <input id="blue" type="range" name="BLUE" min="0" max="255"><input id="bluelabel" type="text" size="2">
+                                        <br>
+                                        GREEN <input id="green" type="range" name="GREEN" min="0" max="255"><input id="greenlabel" type="text" size="2">
+                                        <br>
+                                        AMBER <input id="amber" type="range" name="AMBER" min="0" max="255"><input id="amberlabel" type="text" size="2">
+                                        <br>
+                                        CWHITE<input id="cwhite" type="range" name="CWHITE" min="0" max="255"><input id="cwhitelabel" type="text" size="2">
+                                        <br>
+                                        WWHITE <input id="wwhite" type="range" name="WWHITE" min="0" max="255"><input id="wwhitelabel" type="text" size="2">
+                                        <br>
+                                        <button type="button" class="webcam">ChangeColorFromWebcam</button>
+                                        <br>
+                                        <br>
+                                        DIM SPEED <input id="dimspeed" type="range" name="DIM" min="0" max="255"><input id="dimlabel" type="text" size="2">
+                                        <br>
+                                        SET ALARM<input type="time" name="usr_time">
+
+                                        <input id ="submitBtn" type="submit" value="Submit">
+
+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div id="s4" style="background-color:#FFA500;">
+                     State <input id="state4" type="range" name="state" min="0" max="1" ><label>Off</label>
+                     <br>
+                                        RED<input id="red" type="range" name="RED" min="0" max="255" ><input id="redlabel" type="text" size="2">
+                                        <br>
+                                        BLUE <input id="blue" type="range" name="BLUE" min="0" max="255"><input id="bluelabel" type="text" size="2">
+                                        <br>
+                                        GREEN <input id="green" type="range" name="GREEN" min="0" max="255"><input id="greenlabel" type="text" size="2">
+                                        <br>
+                                        AMBER <input id="amber" type="range" name="AMBER" min="0" max="255"><input id="amberlabel" type="text" size="2">
+                                        <br>
+                                        CWHITE<input id="cwhite" type="range" name="CWHITE" min="0" max="255"><input id="cwhitelabel" type="text" size="2">
+                                        <br>
+                                        WWHITE <input id="wwhite" type="range" name="WWHITE" min="0" max="255"><input id="wwhitelabel" type="text" size="2">
+                                        <br>
+                                        <button type="button" class="webcam">ChangeColorFromWebcam</button>
+                                        <br>
+                                        <br>
+                                        DIM SPEED <input id="dimspeed" type="range" name="DIM" min="0" max="255"><input id="dimlabel" type="text" size="2">
+                                        <br>
+                                        SET ALARM<input type="time" name="usr_time">
+
+                                        <input id ="submitBtn" type="submit" value="Submit">
+
+
+                                    </div>
+                                </td>
+                                <td>
+                                    <div id="s5" style="background-color:#FFA500;">
+                                        State<input id="state3" type="range" name="state" min="0" max="1" ><label>Off</label>
+                                        <br>
+                                        RED<input id="red" type="range" name="RED" min="0" max="255" ><input id="redlabel" type="text" size="2">
+                                        <br>
+                                        BLUE <input id="blue" type="range" name="BLUE" min="0" max="255"><input id="bluelabel" type="text" size="2">
+                                        <br>
+                                        GREEN <input id="green" type="range" name="GREEN" min="0" max="255"><input id="greenlabel" type="text" size="2">
+                                        <br>
+                                        AMBER <input id="amber" type="range" name="AMBER" min="0" max="255"><input id="amberlabel" type="text" size="2">
+                                        <br>
+                                        CWHITE<input id="cwhite" type="range" name="CWHITE" min="0" max="255"><input id="cwhitelabel" type="text" size="2">
+                                        <br>
+                                        WWHITE <input id="wwhite" type="range" name="WWHITE" min="0" max="255"><input id="wwhitelabel" type="text" size="2">
+                                        <br>
+                                        <button type="button" class="webcam">ChangeColorFromWebcam</button>
+                                        <br>
+                                        <br>
+                                        DIM SPEED <input id="dimspeed" type="range" name="DIM" min="0" max="255"><input id="dimlabel" type="text" size="2">
+                                        <br>
+                                        SET ALARM<input type="time" name="usr_time">
+
+                                        <input id ="submitBtn" type="submit" value="Submit">
+
+
+                                    </div>
+                                </td>
+                                <td>
+                                    <div id="s6" style="background-color:#FFA500;">
+                                        State<input id="state3" type="range" name="state" min="0" max="1" ><label>Off</label>
+                                        <br>
+                                        RED<input id="red" type="range" name="RED" min="0" max="255" ><input id="redlabel" type="text" size="2">
+                                        <br>
+                                        BLUE <input id="blue" type="range" name="BLUE" min="0" max="255"><input id="bluelabel" type="text" size="2">
+                                        <br>
+                                        GREEN <input id="green" type="range" name="GREEN" min="0" max="255"><input id="greenlabel" type="text" size="2">
+                                        <br>
+                                        AMBER <input id="amber" type="range" name="AMBER" min="0" max="255"><input id="amberlabel" type="text" size="2">
+                                        <br>
+                                        CWHITE<input id="cwhite" type="range" name="CWHITE" min="0" max="255"><input id="cwhitelabel" type="text" size="2">
+                                        <br>
+                                        WWHITE <input id="wwhite" type="range" name="WWHITE" min="0" max="255"><input id="wwhitelabel" type="text" size="2">
+                                        <br>
+                                        <button type="button" class="webcam">ChangeColorFromWebcam</button>
+                                        <br>
+                                        <br>
+                                        DIM SPEED <input id="dimspeed" type="range" name="DIM" min="0" max="255"><input id="dimlabel" type="text" size="2">
+                                        <br>
+                                        SET ALARM<input type="time" name="usr_time">
+
+                                        <input id ="submitBtn" type="submit" value="Submit">
+
+
+                                    </div></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div id="s7" style="background-color:#FFA500;">
+                                       State<input id="state3" type="range" name="state" min="0" max="1" ><label>Off</label>
+                                       <br>
+                                        RED<input id="red" type="range" name="RED" min="0" max="255" ><input id="redlabel" type="text" size="2">
+                                        <br>
+                                        BLUE <input id="blue" type="range" name="BLUE" min="0" max="255"><input id="bluelabel" type="text" size="2">
+                                        <br>
+                                        GREEN <input id="green" type="range" name="GREEN" min="0" max="255"><input id="greenlabel" type="text" size="2">
+                                        <br>
+                                        AMBER <input id="amber" type="range" name="AMBER" min="0" max="255"><input id="amberlabel" type="text" size="2">
+                                        <br>
+                                        CWHITE<input id="cwhite" type="range" name="CWHITE" min="0" max="255"><input id="cwhitelabel" type="text" size="2">
+                                        <br>
+                                        WWHITE <input id="wwhite" type="range" name="WWHITE" min="0" max="255"><input id="wwhitelabel" type="text" size="2">
+                                        <br>
+                                        <button type="button" class="webcam">ChangeColorFromWebcam</button>
+                                        <br>
+                                        <br>
+                                        DIM SPEED <input id="dimspeed" type="range" name="DIM" min="0" max="255"><input id="dimlabel" type="text" size="2">
+                                        <br>
+                                        SET ALARM<input type="time" name="usr_time">
+
+                                        <input id ="submitBtn" type="submit" value="Submit">
+
+
+                                    </div>
+                                </td>
+                                <td>
+                                    <div id="s8" style="background-color:#FFA500;">
+                                        State<input id="state3" type="range" name="state" min="0" max="1" ><label>Off</label>
+                                        <br>
+                                        RED<input id="red" type="range" name="RED" min="0" max="255" ><input id="redlabel" type="text" size="2">
+                                        <br>
+                                        BLUE <input id="blue" type="range" name="BLUE" min="0" max="255"><input id="bluelabel" type="text" size="2">
+                                        <br>
+                                        GREEN <input id="green" type="range" name="GREEN" min="0" max="255"><input id="greenlabel" type="text" size="2">
+                                        <br>
+                                        AMBER <input id="amber" type="range" name="AMBER" min="0" max="255"><input id="amberlabel" type="text" size="2">
+                                        <br>
+                                        CWHITE<input id="cwhite" type="range" name="CWHITE" min="0" max="255"><input id="cwhitelabel" type="text" size="2">
+                                        <br>
+                                        WWHITE <input id="wwhite" type="range" name="WWHITE" min="0" max="255"><input id="wwhitelabel" type="text" size="2">
+                                        <br>
+                                        <button type="button" class="webcam">ChangeColorFromWebcam</button>
+                                        <br>
+                                        <br>
+                                        DIM SPEED <input id="dimspeed" type="range" name="DIM" min="0" max="255"><input id="dimlabel" type="text" size="2">
+                                        <br>
+                                        SET ALARM<input type="time" name="usr_time">
+
+                                        <input id ="submitBtn" type="submit" value="Submit">
+
+
+                                    </div>
+                                </td>
+                                <td>
+                                    <div id="s9" style="background-color:#FFA500;">
+                                     State<input id="state3" type="range" name="state" min="0" max="1" ><label>Off</label>
+                                      <br>
+                                        RED<input id="red" type="range" name="RED" min="0" max="255" ><input id="redlabel" type="text" size="2">
+                                        <br>
+                                        BLUE <input id="blue" type="range" name="BLUE" min="0" max="255"><input id="bluelabel" type="text" size="2">
+                                        <br>
+                                        GREEN <input id="green" type="range" name="GREEN" min="0" max="255"><input id="greenlabel" type="text" size="2">
+                                        <br>
+                                        AMBER <input id="amber" type="range" name="AMBER" min="0" max="255"><input id="amberlabel" type="text" size="2">
+                                        <br>
+                                        CWHITE<input id="cwhite" type="range" name="CWHITE" min="0" max="255"><input id="cwhitelabel" type="text" size="2">
+                                        <br>
+                                        WWHITE <input id="wwhite" type="range" name="WWHITE" min="0" max="255"><input id="wwhitelabel" type="text" size="2">
+                                        <br>
+                                        <button type="button" class="webcam">ChangeColorFromWebcam</button>
+                                        <br>
+                                        <br>
+                                        DIM SPEED <input id="dimspeed" type="range" name="DIM" min="0" max="255"><input id="dimlabel" type="text" size="2">
+                                        <br>
+                                        SET ALARM<input type="time" name="usr_time">
+
+                                        <input id ="submitBtn" type="submit" value="Submit">
+
+
+                                    </div></td>
+                            </tr>
+                        </table>
+                    </main><!-- .content -->
+                </div><!-- .container-->
+
+                <aside class="left-sidebar">
+
+                </aside><!-- .left-sidebar -->
+
+                <aside class="right-sidebar">
+
+                </aside><!-- .right-sidebar -->
+
+            </div><!-- .middle-->
+
+            <footer class="footer">
+
+            </footer><!-- .footer -->
+
+        </div><!-- .wrapper -->
+
+    </body>
+</html>
